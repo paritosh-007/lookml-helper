@@ -1,4 +1,4 @@
-
+// extension.js
 import { LookerExtensionSDK } from '@looker/extension-sdk';
 
 const sdk = LookerExtensionSDK.create();
@@ -19,7 +19,7 @@ sdk.init()
     // Function to send data to GCF
     const sendDataToGCF = async (dashboardId) => {
       try {
-        const response = await fetch(sdk.manifest.url, {
+        const response = await fetch(sdk.manifest.url, { // Fetches the URL from manifest.lkml
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
