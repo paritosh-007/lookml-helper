@@ -1,51 +1,76 @@
-// extension.js
-import { LookerExtensionSDK } from '@looker/extension-sdk';
+import { ExtensionSDK } from '@looker/extension-sdk';
+import {
+  Box,
+  Button,
+  Fieldset,
+  Flex,
+  FlexItem,
+  Form,
+  Heading,
+  InputControl,
+  InputChangeEventArgs,
+  TextArea,
+  useTheme,
+} from '@looker/components';
+import React, { useCallback, useState } from 'react';
 
-const sdk = LookerExtensionSDK.create();
+const MyExtension: React.FC = () => {
+  const sdk = ExtensionSDK.getInstance();
 
-sdk.init()
-  .then(() => {
-    // Create input field for dashboard ID
-    const inputField = document.createElement('input');
-    inputField.type = 'text';
-    inputField.placeholder = 'Enter Dashboard ID';
-    document.body.appendChild(inputField);
+  const [userInput, setUserInput] = useState('');
+  const [responseMessage, setResponseMessage] = useState('');
 
-    // Create button to send request
-    const button = document.createElement('button');
-    button.textContent = 'Send to GCF';
-    document.body.appendChild(button);
+  const handleChange = (event: InputChangeEventArgs) => {
+    setUserInput(event.target.value);
+  };
 
-    // Function to send data to GCF
-    const sendDataToGCF = async (dashboardId) => {
-      try {
-        const response = await fetch(sdk.manifest.url, { // Fetches the URL from manifest.lkml
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ dashboardId })
-        });
+  const handleSubmit = useCallback(async () => {
+    try {
+      // Replace with your actual Cloud Function URL
+      const response = await fetch('https://your-gcf-region-your-gcf-project.cloudfunctions.net/yourFunctionName', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: userInput }),
+      });
 
-        const result = await response.json();
-        console.log('Response from GCF:', result);
-        // Handle the response from GCF as needed (e.g., display a message)
-      } catch (error) {
-        console.error('Error sending data to GCF:', error);
-      }
-    };
+      const data = await response.json();
+      setResponseMessage(data.message || 'Success!');
+    } catch (error) {
+      setResponseMessage(`Error: ${error}`);
+    }
+  }, [userInput]);
 
-    // Event listener for button click
-    button.addEventListener('click', () => {
-      const dashboardId = inputField.value;
-      if (dashboardId) {
-        sendDataToGCF(dashboardId);
-      } else {
-        alert('Please enter a Dashboard ID');
-      }
-    });
+  const { colors } = useTheme();
 
-  })
-  .catch(error => {
-    console.error('Error initializing SDK:', error);
-  });
+  return (
+    <Box padding="medium">
+      <Heading>My Looker Extension</Heading>
+      <Form onSubmit={handleSubmit}>
+        <Fieldset>
+          <Flex direction="column" gap="small">
+            <TextArea
+              width="100%"
+              label="Enter Input"
+              value={userInput}
+              onChange={handleChange}
+            />
+            <Button type="submit" color={colors.primary}>
+              Send to Cloud Function
+            </Button>
+          </Flex>
+        </Fieldset>
+      </Form>
+      {responseMessage && (
+        <FlexItem marginTop="large">
+          <Box padding="medium" backgroundColor="#eee">
+            {responseMessage}
+          </Box>
+        </FlexItem>
+      )}
+    </Box>
+  );
+};
+
+export default MyExtension;
