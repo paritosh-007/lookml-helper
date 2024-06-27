@@ -1,4 +1,5 @@
 import { ExtensionSDK } from '@looker/extension-sdk';
+import React, { useEffect } from 'react';
 import {
   Box,
   Button,
@@ -14,20 +15,27 @@ import {
 } from '@looker/components';
 import React, { useCallback, useState } from 'react';
 
-const MyExtension: React.FC = () => {
-  const sdk = ExtensionSDK.getInstance();
+const MyComponent = () => {
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (hasUnsavedChanges()) { // Replace with your logic
+        event.preventDefault(); // Prevent immediate navigation
+        event.returnValue = ''; // Chrome requires this
+        return ''; // For other browsers
+      }
+    };
 
-  const [userInput, setUserInput] = useState('');
-  const [responseMessage, setResponseMessage] = useState('');
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
-  const handleChange = (event: InputChangeEventArgs) => {
-    setUserInput(event.target.value);
-  };
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   const handleSubmit = useCallback(async () => {
     try {
       // Replace with your actual Cloud Function URL
-      const response = await fetch('https://your-gcf-region-your-gcf-project.cloudfunctions.net/yourFunctionName', {
+      const response = await fetch('https://us-central1-best-hack-427512.cloudfunctions.net/get_lookml', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
